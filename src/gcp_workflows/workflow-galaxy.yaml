@@ -1,0 +1,44 @@
+main:
+  steps:
+  - init:
+      assign:
+      - repository: projects/__YOUR_PROJECT_ID__/locations/us-central1/repositories/my-dataform-repo
+  - createCompilationResult:
+      call: http.post
+      args:
+          url: ${"https://dataform.googleapis.com/v1beta1/" + repository + "/compilationResults"}
+          auth:
+              type: OAuth2
+              scopes: ["https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/bigquery"]
+          body:
+              gitCommitish: main
+      result: compilationResult
+  - createWorkflowInvocation:
+      call: http.post
+      args:
+          url: ${"https://dataform.googleapis.com/v1beta1/" + repository + "/workflowInvocations"}
+          auth:
+              type: OAuth2
+              scopes: ["https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/bigquery"]
+          body:
+            invocationConfig:
+                includedTargets:
+                    - database: __YOUR_PROJECT_ID__
+                      schema: __YOUR_DATASET__
+                      name: __YOUR_TABLE_NAME__
+            compilationResult: ${compilationResult.body.name}
+      result: workflowInvocation
+  - custom_function:
+      call: http.post
+      args:
+          url: __YOUR_FUNCTION_URL__
+          headers: 
+            Content-Type: "application/json"
+          body:
+              name: "Developer"
+          auth:
+            type: OIDC
+            audience: __YOUR_FUNCTION_URL__
+      result: string_result
+  - return_result:
+      return: ${string_result}
