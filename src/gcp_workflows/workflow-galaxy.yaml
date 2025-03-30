@@ -2,7 +2,9 @@ main:
   steps:
   - init:
       assign:
-      - repository: projects/__YOUR_PROJECT_ID__/locations/us-central1/repositories/my-dataform-repo
+      - projectID: ${sys.get_env("GOOGLE_CLOUD_PROJECT_ID")}
+      - workflowLocation: ${sys.get_env("GOOGLE_CLOUD_LOCATION")}
+      - repository: projects/${projectID}/locations/${workflowLocation}/repositories/my-dataform-repo
   - createCompilationResult:
       call: http.post
       args:
@@ -23,7 +25,7 @@ main:
           body:
             invocationConfig:
                 includedTargets:
-                    - database: __YOUR_PROJECT_ID__
+                    - database: ${projectID}
                       schema: __YOUR_DATASET__
                       name: __YOUR_TABLE_NAME__
             compilationResult: ${compilationResult.body.name}
@@ -42,3 +44,7 @@ main:
       result: string_result
   - return_result:
       return: ${string_result}
+
+
+
+
